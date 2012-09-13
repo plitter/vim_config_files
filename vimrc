@@ -8,6 +8,11 @@ let mapleader=','
 set backup      " keep a backup file
 set backupdir=$HOME/.vimbak
 
+" Source the vimrc file after saving it
+if has("autocmd")
+  autocmd! bufwritepost .vimrc source $MYVIMRC
+endif
+
 " Search for selected block of text, forwards or backwards.
 vnoremap <silent> * :<C-U>
   \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
@@ -100,3 +105,33 @@ set hidden
 " Set Ctrl-Space to do omnicompletion
 imap <C-Space> <C-x><C-o>
 imap <C-@> <C-Space>
+
+"TESTAREA
+function! ForwardSkipConceal(count)
+    let cnt=a:count
+    let mvcnt=0
+    let c=col('.')
+    let l=line('.')
+    let lc=col('$')
+    let line=getline('.')
+    while cnt
+        if c>=col('$')
+            let mvcnt+=cnt
+            break
+        endif
+        let [isconcealed, cchar, group]=synconcealed(l, c)
+        if isconcealed
+            let cnt-=strchars(cchar)
+            let oldc=c
+            let c+=1
+            while c<lc && synconcealed(l, c)[2]==group | let c+=1 | endwhile
+            let mvcnt+=strchars(line[oldc-1:c-2])
+        else
+            let cnt-=1
+            let mvcnt+=1
+            let c+=len(matchstr(line[c-1:], '.'))
+        endif
+    endwhile
+    return ":\<C-u>\e".mvcnt.'l'
+endfunction
+nnoremap <expr> l ForwardSkipConceal(v:count1)
