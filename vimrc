@@ -109,6 +109,30 @@ set hidden
 imap <C-Space> <C-x><C-o>
 imap <C-@> <C-Space>
 
+function! ForwardSkipConceal()
+    let l = line(".")
+    let c = col(".")
+    let cTemp = c
+    let lTemp = l 
+    let mvCount = 0
+
+    while synconcealed(lTemp, cTemp)[0]
+        if cTemp == col("$")
+            break
+        endif
+        echom synconcealed(lTemp, cTemp)[2]
+        let cTemp += 1
+    endwhile
+    call cursor(l, cTemp+1)
+    echom cTemp
+    "echo "Funker"
+endfunction
+
+nnoremap l :call ForwardSkipConceal()<cr>
+
+set foldmethod=marker
+    
+    
 "TESTAREA
 "function! ForwardSkipConceal(count)
     "let cnt=a:count
